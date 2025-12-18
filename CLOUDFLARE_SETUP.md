@@ -11,9 +11,9 @@
 
 1. Wybierz swoje repo: `filipwronski/blog`
 2. Ustaw konfigurację buildu:
-   - **Build command**: `npm run generate`
-   - **Build output directory**: `.output/public`
-   - **Root directory**: `/` (pozostaw puste)
+   - **Framework preset**: Nuxt.js
+   - **Build command**: `npm run generate` (automatycznie ustawione)
+   - **Root directory (path)**: `/` (pozostaw puste)
 3. Kliknij **Save and Deploy**
 
 ### Opcja B: Manual Upload (szybszy start, bez CI/CD)
@@ -24,58 +24,31 @@
 
 ---
 
-## Krok 2: Pobierz dane do GitHub Actions
+## Krok 2: Skonfiguruj ustawienia buildu w Cloudflare
 
-### Account ID
+W swoim projekcie Cloudflare Pages przejdź do **Settings** → **Builds & deployments**:
 
-1. W Cloudflare Dashboard kliknij na swoją nazwę (prawy górny róg)
-2. Skopiuj **Account ID** (po prawej stronie)
-3. Zapisz go - będzie potrzebny w GitHub
+### Framework preset
+- Wybierz: **Nuxt.js** (Cloudflare automatycznie ustawi właściwe komendy)
 
-### API Token
+### Build configuration
+**Jeśli Framework preset NIE ustawił automatycznie:**
+- **Build command**: `npm run generate`
+- **Root directory (path)**: `/` (pozostaw puste jeśli projekt jest w root)
 
-1. Przejdź do **My Profile** (ikona profilu → My Profile)
-2. Kliknij **API Tokens** (lewa strona)
-3. Kliknij **Create Token**
-4. Wybierz template: **"Edit Cloudflare Workers"**
-5. Lub stwórz **Custom token** z uprawnieniami:
-   - **Account → Cloudflare Pages → Edit**
-6. Kliknij **Continue to summary** → **Create Token**
-7. **Skopiuj token** (widoczny tylko raz!)
+### Environment variables
+W sekcji **Environment variables** dodaj:
+- **Variable name**: `NODE_VERSION`
+- **Value**: `22`
+- Kliknij **Save**
 
----
-
-## Krok 3: Skonfiguruj GitHub Secrets
-
-1. Przejdź do swojego repo: `https://github.com/filipwronski/blog`
-2. Kliknij **Settings** → **Secrets and variables** → **Actions**
-3. Kliknij **New repository secret** i dodaj:
-
-**Secret 1:**
-- Name: `CLOUDFLARE_API_TOKEN`
-- Value: [wklej API token z kroku 2]
-
-**Secret 2:**
-- Name: `CLOUDFLARE_ACCOUNT_ID`
-- Value: [wklej Account ID z kroku 2]
-
-4. Kliknij **Add secret** dla każdego
+**WAŻNE**:
+- NIE ustawiaj "Deploy command" - zostaw puste lub usuń jeśli jest `npx wrangler deploy`
+- Cloudflare automatycznie wykryje katalog `.output/public` dla Nuxt.js
 
 ---
 
-## Krok 4: Upewnij się że projekt nazywa się `fw-blog`
-
-W pliku [.github/workflows/deploy.yml](.github/workflows/deploy.yml) na linii ~36:
-
-```yaml
-projectName: fw-blog  # ← Ta nazwa musi zgadzać się z nazwą w Cloudflare Pages
-```
-
-Jeśli w Cloudflare Pages utworzyłeś projekt z inną nazwą (np. `blog`), zmień `fw-blog` na tę nazwę.
-
----
-
-## Krok 5: Deployment!
+## Krok 3: Deployment!
 
 1. Zacommituj wszystkie zmiany:
 ```bash
@@ -84,15 +57,22 @@ git commit -m "Configure Cloudflare Pages deployment"
 git push origin master
 ```
 
-2. Przejdź do **Actions** w GitHub - zobaczysz running workflow
+2. Cloudflare automatycznie:
+   - Wykryje push do gałęzi `master`
+   - Uruchomi build (`npm run generate`)
+   - Wdroży zawartość `.output/public`
 
-3. Po ~1-2 minutach strona będzie dostępna pod:
+3. Zobacz status buildu:
+   - W Cloudflare Pages → Twój projekt → **Deployments**
+   - Build trwa ~1-2 minuty
+
+4. Po zakończeniu strona będzie dostępna pod:
    - `https://fw-blog.pages.dev`
    - lub URL który Cloudflare wygenerował
 
 ---
 
-## Krok 6 (Opcjonalny): Własna domena
+## Krok 4 (Opcjonalny): Własna domena
 
 1. W Cloudflare Pages → Twój projekt → **Custom domains**
 2. Kliknij **Set up a custom domain**
@@ -106,22 +86,27 @@ git push origin master
 
 ## Troubleshooting
 
-### "Error: Unable to find project"
+### "Missing entry-point to Worker script or to assets directory"
 
-- Upewnij się że `projectName` w workflow zgadza się z nazwą projektu w Cloudflare
-- Sprawdź czy projekt został utworzony w Cloudflare Pages
-
-### "Error: Authentication error"
-
-- Sprawdź czy API token ma uprawnienia `Cloudflare Pages:Edit`
-- Upewnij się że token nie wygasł
-- Sprawdź czy Account ID jest poprawny
+- **Przyczyna**: W sekcji Build configuration jest ustawione pole które nie powinno istnieć dla Pages
+- **Rozwiązanie**: W Cloudflare Pages → Settings → Builds & deployments:
+  1. Sprawdź **Framework preset** - powinno być **Nuxt.js**
+  2. **Build command** = `npm run generate`
+  3. NIE powinno być pola "Deploy command" - jeśli jest, usuń jego wartość
+  4. Cloudflare automatycznie wykrywa `.output/public` dla Nuxt
 
 ### "Build failed"
 
-- Sprawdź logi w GitHub Actions
+- Sprawdź logi w Cloudflare Pages → Deployments → [konkretny build]
 - Upewnij się że `npm run generate` działa lokalnie
 - Sprawdź czy wszystkie zależności są w `package.json`
+- Zweryfikuj że Node.js version w Cloudflare = 22 (lub ustaw `NODE_VERSION` env variable)
+
+### Build działa ale strona jest pusta
+
+- Upewnij się że **Framework preset** = **Nuxt.js**
+- Sprawdź logi buildu czy `npm run generate` faktycznie tworzy pliki w `.output/public`
+- Jeśli używasz innego presetu, Cloudflare może szukać plików w złym miejscu
 
 ---
 

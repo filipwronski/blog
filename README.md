@@ -82,29 +82,28 @@ npm run preview
 
 ## Deployment na Cloudflare Pages
 
-### Automatyczny deployment przez GitHub Actions
+### Automatyczny deployment przez Git integration
 
 1. **Utwórz projekt Cloudflare Pages:**
    - Zaloguj się do [Cloudflare Dashboard](https://dash.cloudflare.com/)
    - Przejdź do Workers & Pages → Create application → Pages
-   - Połącz z GitHub lub utwórz projekt bezpośrednio
+   - Wybierz **Connect to Git** i połącz swoje repo
 
-2. **Pobierz dane z Cloudflare:**
-   - **Account ID**: Dashboard → kliknij na swoją nazwę → Account ID (po prawej)
-   - **API Token**: My Profile → API Tokens → Create Token
-     - Użyj template: "Edit Cloudflare Workers"
-     - Lub stwórz custom token z uprawnieniami: `Cloudflare Pages:Edit`
+2. **Skonfiguruj build settings:**
+   - **Framework preset**: Nuxt.js (automatycznie ustawi `npm run generate`)
+   - **Environment variable**: Dodaj `NODE_VERSION` = `22`
+   - Upewnij się że NIE ma ustawionego "Deploy command"
+   - Cloudflare automatycznie wykryje katalog `.output/public`
 
-3. **Dodaj secrets w GitHub:**
-   - Przejdź do Settings → Secrets and variables → Actions
-   - Dodaj:
-     - `CLOUDFLARE_API_TOKEN` - API token z Cloudflare
-     - `CLOUDFLARE_ACCOUNT_ID` - Account ID z Cloudflare
-
-4. **Push do gałęzi `master` uruchomi deployment!**
-   - Build: ~30-60 sekund
+3. **Push do gałęzi `master` uruchomi deployment!**
+   - Cloudflare automatycznie wykryje zmiany
+   - Build: ~1-2 minuty
    - Deploy: natychmiastowy
    - URL: `fw-blog.pages.dev` (lub twoja własna domena)
+
+4. **GitHub Actions weryfikuje build:**
+   - Workflow w [.github/workflows/deploy.yml](.github/workflows/deploy.yml) upewnia się że build działa
+   - To oszczędza czas - jeśli build failuje, zobaczysz to w GitHub zanim Cloudflare spróbuje
 
 ### Konfiguracja domeny własnej
 
@@ -199,10 +198,11 @@ npm install
 
 ### Cloudflare Pages deployment nie działa
 
-- Sprawdź czy secrets (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) są poprawnie skonfigurowane
-- Zweryfikuj że API token ma uprawnienia `Cloudflare Pages:Edit`
-- Sprawdź logi GitHub Actions dla szczegółów
-- Upewnij się że projekt `fw-blog` istnieje w Cloudflare Pages
+- Sprawdź logi buildu w Cloudflare Pages → Deployments
+- Upewnij się że **Framework preset** = **Nuxt.js**
+- Usuń wartość z pola **Deploy command** jeśli istnieje (zostaw puste)
+- Jeśli widzisz "Missing entry-point" error, sprawdź czy nie ma ustawionego Deploy command
+- Zobacz więcej rozwiązań w [CLOUDFLARE_SETUP.md](CLOUDFLARE_SETUP.md#troubleshooting)
 
 ## Licencja
 
