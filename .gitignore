@@ -26,6 +26,3 @@ logs
 # Lock files (keep package-lock.json for CI/CD)
 pnpm-lock.yaml
 yarn.lock
-
-# FTP credentials
-.ftpconfig

@@ -1,13 +1,16 @@
-name: Deploy to FTP
+name: Deploy to Cloudflare Pages
 
 on:
   push:
     branches:
-      - master  # lub master, w zależności od nazwy głównej gałęzi
+      - master
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
 
     steps:
       - name: Checkout code
@@ -22,15 +25,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate static site
+      - name: Build static site
         run: npm run generate
 
-      - name: Deploy to FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: .output/public/
-          server-dir: /domains/blog.cutmakers.pl/public_html/
-          dangerous-clean-slate: false
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: fw-blog
+          directory: .output/public
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          wranglerVersion: '3'

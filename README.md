@@ -80,29 +80,46 @@ Podgląd lokalny:
 npm run preview
 ```
 
-## Deployment na FTP
+## Deployment na Cloudflare Pages
 
-### Konfiguracja GitHub Actions
+### Automatyczny deployment przez GitHub Actions
 
-1. Przejdź do Settings → Secrets and variables → Actions w swoim repo GitHub
+1. **Utwórz projekt Cloudflare Pages:**
+   - Zaloguj się do [Cloudflare Dashboard](https://dash.cloudflare.com/)
+   - Przejdź do Workers & Pages → Create application → Pages
+   - Połącz z GitHub lub utwórz projekt bezpośrednio
 
-2. Dodaj następujące secrets:
-   - `FTP_SERVER` - adres serwera FTP (np. ftp.twojadomena.pl)
-   - `FTP_USERNAME` - nazwa użytkownika FTP
-   - `FTP_PASSWORD` - hasło do FTP
+2. **Pobierz dane z Cloudflare:**
+   - **Account ID**: Dashboard → kliknij na swoją nazwę → Account ID (po prawej)
+   - **API Token**: My Profile → API Tokens → Create Token
+     - Użyj template: "Edit Cloudflare Workers"
+     - Lub stwórz custom token z uprawnieniami: `Cloudflare Pages:Edit`
 
-3. Dostosuj ścieżkę w [.github/workflows/deploy.yml](.github/workflows/deploy.yml):
-   - Zmień `server-dir` na odpowiednią ścieżkę na swoim serwerze
+3. **Dodaj secrets w GitHub:**
+   - Przejdź do Settings → Secrets and variables → Actions
+   - Dodaj:
+     - `CLOUDFLARE_API_TOKEN` - API token z Cloudflare
+     - `CLOUDFLARE_ACCOUNT_ID` - Account ID z Cloudflare
 
-4. Push do gałęzi `main` automatycznie uruchomi deployment!
+4. **Push do gałęzi `master` uruchomi deployment!**
+   - Build: ~30-60 sekund
+   - Deploy: natychmiastowy
+   - URL: `fw-blog.pages.dev` (lub twoja własna domena)
 
-### Manualne wgrywanie przez FTP
+### Konfiguracja domeny własnej
 
-Jeśli wolisz manualne wgrywanie:
+1. W Cloudflare Pages → Custom domains
+2. Dodaj `blog.cutmakers.pl`
+3. Cloudflare automatycznie skonfiguruje DNS i SSL
 
-1. Wygeneruj stronę: `npm run generate`
-2. Upload zawartość `.output/public/` na swój hosting FTP
-3. Upewnij się, że pliki są w katalogu `public_html` (lub podobnym)
+### Zalety Cloudflare Pages
+
+✅ **Darmowy** - nieograniczony bandwidth i requesty
+✅ **Błyskawiczny** - globalny CDN w 300+ lokalizacjach
+✅ **Szybki build** - nie marnuje GitHub Actions minutes
+✅ **Atomic deployments** - zero downtime
+✅ **Preview URLs** - automatyczne dla każdego PR
+✅ **Auto SSL** - darmowy certyfikat HTTPS
 
 ## Struktura projektu
 
@@ -180,11 +197,12 @@ rm -rf .nuxt node_modules package-lock.json
 npm install
 ```
 
-### FTP deployment nie działa
+### Cloudflare Pages deployment nie działa
 
-- Sprawdź czy secrets są poprawnie skonfigurowane
-- Zweryfikuj ścieżkę `server-dir` w workflow
+- Sprawdź czy secrets (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) są poprawnie skonfigurowane
+- Zweryfikuj że API token ma uprawnienia `Cloudflare Pages:Edit`
 - Sprawdź logi GitHub Actions dla szczegółów
+- Upewnij się że projekt `fw-blog` istnieje w Cloudflare Pages
 
 ## Licencja
 
