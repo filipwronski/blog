@@ -1,4 +1,4 @@
-# Welcome to Nuxt Content Starter
+# Welcome to Nuxt Content Starterr
 
 This is the main page displaying Markdown located at [content/index.md](https://github.com/nuxt/starter/blob/content/content/index.md).
 
