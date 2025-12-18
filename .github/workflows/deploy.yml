@@ -3,7 +3,7 @@ name: Deploy to FTP
 on:
   push:
     branches:
-      - main  # lub master, w zależności od nazwy głównej gałęzi
+      - master  # lub master, w zależności od nazwy głównej gałęzi
 
 jobs:
   build-and-deploy:
@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -32,5 +32,5 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: .output/public/
-          server-dir: /public_html/  # Dostosuj do swojego hostingu
+          server-dir: /domains/blog.cutmakers.pl/public_html/
           dangerous-clean-slate: false
