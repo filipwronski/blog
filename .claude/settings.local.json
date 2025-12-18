@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx nuxi@latest init:*)",
+      "Bash(cat:*)",
+      "Bash(npm run generate:*)"
+    ]
+  }
+}
