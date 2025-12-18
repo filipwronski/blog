@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npx nuxi@latest init:*)",
       "Bash(cat:*)",
-      "Bash(npm run generate:*)"
+      "Bash(npm run generate:*)",
+      "Bash(npm install:*)"
     ]
   }
 }

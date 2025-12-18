@@ -7,7 +7,8 @@ Nowoczesny blog zoptymalizowany pod Core Web Vitals, zbudowany z wykorzystaniem 
 - Static Site Generation dla maksymalnej wydajności
 - Optymalizacja obrazów (WebP, AVIF)
 - Eliminacja CLS przy ładowaniu fontów
-- Automatyczne deployowanie na FTP przez GitHub Actions
+- Proste deployowanie przez SSH/rsync
+- **Pre-deployment linting** (ESLint + Prettier z auto-fix)
 - Podświetlanie składni kodu
 - Responsywny design
 - SEO-friendly
@@ -80,45 +81,87 @@ Podgląd lokalny:
 npm run preview
 ```
 
-## Deployment na Cloudflare Pages
+## Code Quality
 
-### Automatyczny deployment przez Git integration
+Projekt używa ESLint i Prettier do zapewnienia wysokiej jakości kodu.
 
-1. **Utwórz projekt Cloudflare Pages:**
-   - Zaloguj się do [Cloudflare Dashboard](https://dash.cloudflare.com/)
-   - Przejdź do Workers & Pages → Create application → Pages
-   - Wybierz **Connect to Git** i połącz swoje repo
+### Dostępne komendy:
 
-2. **Skonfiguruj build settings:**
-   - **Framework preset**: Nuxt.js (automatycznie ustawi `npm run generate`)
-   - **Environment variable**: Dodaj `NODE_VERSION` = `22`
-   - Upewnij się że NIE ma ustawionego "Deploy command"
-   - Cloudflare automatycznie wykryje katalog `.output/public`
+```bash
+# Sprawdź kod (bez automatycznych poprawek)
+npm run lint
 
-3. **Push do gałęzi `master` uruchomi deployment!**
-   - Cloudflare automatycznie wykryje zmiany
-   - Build: ~1-2 minuty
-   - Deploy: natychmiastowy
-   - URL: `fw-blog.pages.dev` (lub twoja własna domena)
+# Automatycznie napraw błędy ESLint i sformatuj kod
+npm run lint:fix
 
-4. **GitHub Actions weryfikuje build:**
-   - Workflow w [.github/workflows/deploy.yml](.github/workflows/deploy.yml) upewnia się że build działa
-   - To oszczędza czas - jeśli build failuje, zobaczysz to w GitHub zanim Cloudflare spróbuje
+# Tylko formatowanie (Prettier)
+npm run format
 
-### Konfiguracja domeny własnej
+# Sprawdź formatowanie bez zmian
+npm run format:check
+```
 
-1. W Cloudflare Pages → Custom domains
-2. Dodaj `blog.cutmakers.pl`
-3. Cloudflare automatycznie skonfiguruje DNS i SSL
+### Pre-deployment validation
 
-### Zalety Cloudflare Pages
+Przed każdym deploymentem automatycznie uruchamia się `npm run lint:fix`:
+- ESLint naprawia błędy składni i styl kodu
+- Prettier formatuje wszystkie pliki
+- **Jeśli linting failuje, deployment jest blokowany**
 
-✅ **Darmowy** - nieograniczony bandwidth i requesty
-✅ **Błyskawiczny** - globalny CDN w 300+ lokalizacjach
-✅ **Szybki build** - nie marnuje GitHub Actions minutes
-✅ **Atomic deployments** - zero downtime
-✅ **Preview URLs** - automatyczne dla każdego PR
-✅ **Auto SSL** - darmowy certyfikat HTTPS
+## Deployment przez SSH
+
+### Konfiguracja (jednorazowo)
+
+1. **Skopiuj przykładową konfigurację:**
+   ```bash
+   cp .env.local.example .env.local
+   ```
+
+2. **Uzupełnij swoje dane SSH w [.env.local](.env.local):**
+   ```bash
+   SSH_USER=srv75778
+   SSH_HOST=188.210.222.237
+   SSH_PORT=57185
+   SSH_KEY=~/.ssh/seohost_rsa
+   SSH_PATH=/domains/blog.cutmakers.pl/public_html/
+   ```
+
+   **Uwaga:** Script obsługuje niestandardowe porty i klucze SSH. Jeśli używasz standardowego portu 22 lub domyślnego klucza, możesz pominąć `SSH_PORT` i `SSH_KEY`.
+
+3. **Testuj połączenie:**
+   ```bash
+   ssh -p 57185 -i ~/.ssh/seohost_rsa srv75778@188.210.222.237
+   ```
+
+   Jeśli musisz podać hasło, to normalne - rsync również zapyta o hasło podczas deploymentu.
+
+### Deployment
+
+**Jedna komenda:**
+```bash
+npm run deploy
+```
+
+To wykona:
+1. **Linting i formatowanie** (`npm run lint:fix`) - auto-fix błędów
+2. **Build statycznej strony** (`npm run generate`)
+3. **Sprawdzenie połączenia SSH**
+4. **Przesłanie zmian przez rsync** (~10-30 sekund)
+5. Wyświetlenie statusu i linku do strony
+
+**Jeśli linting failuje, deployment zostanie zatrzymany.**
+
+### Zalety tego rozwiązania
+
+✅ **$0 kosztów** - build lokalny, brak CI/CD minutes
+✅ **10-30 sekund** - rsync przesyła tylko zmienione pliki
+✅ **Pełna kontrola** - widzisz dokładnie co się deployuje
+✅ **Bezpieczne** - SSH key, dane w .env.local (nie w repo)
+✅ **Proste** - jedna komenda `npm run deploy`
+
+### GitHub Actions
+
+Workflow [.github/workflows/deploy.yml](.github/workflows/deploy.yml) weryfikuje czy build działa po każdym pushu. To jest darmowe i pomaga wychwycić błędy wcześnie.
 
 ## Struktura projektu
 
@@ -196,13 +239,21 @@ rm -rf .nuxt node_modules package-lock.json
 npm install
 ```
 
-### Cloudflare Pages deployment nie działa
+### Deployment przez SSH nie działa
 
-- Sprawdź logi buildu w Cloudflare Pages → Deployments
-- Upewnij się że **Framework preset** = **Nuxt.js**
-- Usuń wartość z pola **Deploy command** jeśli istnieje (zostaw puste)
-- Jeśli widzisz "Missing entry-point" error, sprawdź czy nie ma ustawionego Deploy command
-- Zobacz więcej rozwiązań w [CLOUDFLARE_SETUP.md](CLOUDFLARE_SETUP.md#troubleshooting)
+**"Nie można połączyć się przez SSH"**
+- Sprawdź dane w [.env.local](.env.local)
+- Przetestuj połączenie: `ssh -p 57185 -i ~/.ssh/seohost_rsa srv75778@188.210.222.237`
+- Upewnij się że klucz SSH działa i port jest otwarty
+
+**"Permission denied"**
+- Sprawdź uprawnienia do katalogu `SSH_PATH` na serwerze
+- Użytkownik SSH musi mieć prawo zapisu
+- Przetestuj: `ssh user@host "ls -la /sciezka/do/katalogu"`
+
+**"Brak pliku .env.local"**
+- Skopiuj przykładową konfigurację: `cp .env.local.example .env.local`
+- Uzupełnij swoje dane SSH w pliku
 
 ## Licencja
 

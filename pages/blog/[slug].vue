@@ -29,16 +29,14 @@ if (!post.value) {
 
 useHead({
   title: post.value.title,
-  meta: [
-    { name: 'description', content: post.value.description }
-  ]
+  meta: [{ name: 'description', content: post.value.description }],
 })
 
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('pl-PL', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   })
 }
 </script>

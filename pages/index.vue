@@ -9,12 +9,7 @@
       <section class="hero">
         <h2>📝 Najnowsze wpisy</h2>
         <div v-if="posts && posts.length > 0" class="posts-grid">
-          <NuxtLink
-            v-for="post in posts"
-            :key="post._path"
-            :to="post._path"
-            class="post-card"
-          >
+          <NuxtLink v-for="post in posts" :key="post._path" :to="post._path" class="post-card">
             <h3>{{ post.title }}</h3>
             <p class="post-description">{{ post.description }}</p>
             <time class="post-date">{{ formatDate(post.date) }}</time>
@@ -28,8 +23,8 @@
       <section class="about">
         <h2>O blogu</h2>
         <p>
-          Ten blog został zbudowany z wykorzystaniem Nuxt 3 i Nuxt Content,
-          zoptymalizowany pod kątem Core Web Vitals dla najlepszej wydajności.
+          Ten blog został zbudowany z wykorzystaniem Nuxt 3 i Nuxt Content, zoptymalizowany pod
+          kątem Core Web Vitals dla najlepszej wydajności.
         </p>
       </section>
     </main>
@@ -44,22 +39,19 @@
 useHead({
   title: 'Strona główna - Mój Blog',
   meta: [
-    { name: 'description', content: 'Blog o programowaniu, technologii i najlepszych praktykach' }
-  ]
+    { name: 'description', content: 'Blog o programowaniu, technologii i najlepszych praktykach' },
+  ],
 })
 
 const { data: posts } = await useAsyncData('posts', () =>
-  queryContent('/blog')
-    .sort({ date: -1 })
-    .limit(6)
-    .find()
+  queryContent('/blog').sort({ date: -1 }).limit(6).find()
 )
 
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('pl-PL', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   })
 }
 </script>
@@ -120,7 +112,9 @@ const formatDate = (date: string) => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-decoration: none;
   color: inherit;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   display: flex;
   flex-direction: column;
 }

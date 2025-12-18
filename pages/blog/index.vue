@@ -7,11 +7,7 @@
 
     <main class="main">
       <div v-if="posts && posts.length > 0" class="posts-list">
-        <article
-          v-for="post in posts"
-          :key="post._path"
-          class="post-item"
-        >
+        <article v-for="post in posts" :key="post._path" class="post-item">
           <NuxtLink :to="post._path" class="post-link">
             <h2>{{ post.title }}</h2>
             <p class="post-description">{{ post.description }}</p>
@@ -35,22 +31,18 @@
 <script setup lang="ts">
 useHead({
   title: 'Wszystkie wpisy - Mój Blog',
-  meta: [
-    { name: 'description', content: 'Pełna lista wszystkich artykułów blogowych' }
-  ]
+  meta: [{ name: 'description', content: 'Pełna lista wszystkich artykułów blogowych' }],
 })
 
 const { data: posts } = await useAsyncData('all-posts', () =>
-  queryContent('/blog')
-    .sort({ date: -1 })
-    .find()
+  queryContent('/blog').sort({ date: -1 }).find()
 )
 
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('pl-PL', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   })
 }
 </script>
@@ -96,7 +88,9 @@ const formatDate = (date: string) => {
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .post-item:hover {
