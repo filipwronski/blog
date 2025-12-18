@@ -23,9 +23,8 @@ logs
 .env.*
 !.env.example
 
-# Lock files
+# Lock files (keep package-lock.json for CI/CD)
 pnpm-lock.yaml
-package-lock.json
 yarn.lock
 
 # FTP credentials
